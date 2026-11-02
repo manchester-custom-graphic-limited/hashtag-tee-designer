@@ -7,7 +7,7 @@ import { ensureFont, fontFor, fontSupports, getFont } from './lib/fonts.js'
 import { arrange, layoutDesign, measureTags, shuffle } from './lib/layout.js'
 import { autoRoles, highlightsFor, teeHex } from './lib/style.js'
 import { mockupJpeg } from './lib/photoMockup.js'
-import { saveDraft, warmDraft } from './lib/draft.js'
+import { logDesignEvent } from './lib/designLog.js'
 import { tagLabel } from './lib/text.js'
 
 const STEPS = [
@@ -143,7 +143,7 @@ export default function App() {
 
   const go = (id) => {
     if (id !== step && id !== 'intro') track('design_step', { label: `${id}:${tags.length}` })
-    if (id === 'preview') warmDraft()
+    if (id === 'preview' && id !== step) logDesignEvent('preview', designDetails())
     setStep(id)
     window.scrollTo(0, 0)
   }
@@ -166,6 +166,10 @@ export default function App() {
   }
 
   const design = { tags, placed: layout.placed, shape, teeColour, highlight, side, fontsVersion }
+  const designDetails = (q = qty) => ({
+    productId: 'hashtag_tee', colour: teeColour, size, qty: q, shape, side,
+    tags: tags.map(tagLabel), page: window.location.pathname,
+  })
 
   let blocker = null
   if (product === undefined) blocker = 'Loading prices…'
@@ -185,12 +189,6 @@ export default function App() {
       const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')
       const uploadName = `hashtag-tee-${shape}-${side}-${stamp}.png`
       const lineQty = Math.max(1, Math.min(99, Math.round(qty) || 1))
-      // Draft to Drive alongside the cart write; wait at most 15 s for it, then carry on.
-      const draft = saveDraft({
-        blob,
-        name: uploadName,
-        details: { productId: product.id, colour: teeColour, size, qty: lineQty, shape, side, tags: tags.map(tagLabel), page: window.location.pathname },
-      })
       await addHashtagLineToCart({
         product,
         colour: teeColour,
@@ -201,8 +199,8 @@ export default function App() {
         size,
         qty: lineQty,
       })
-      const draftId = await Promise.race([draft, new Promise((r) => setTimeout(() => r(null), 15000))])
-      track('place_order_click', { label: draftId || 'no-draft' })
+      track('place_order_click', { label: `${tags.length} tags` })
+      await logDesignEvent('place_order', designDetails(lineQty))
       window.location.assign('/cart/')
     } catch (err) {
       console.error(err)
