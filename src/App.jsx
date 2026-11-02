@@ -7,6 +7,7 @@ import { ensureFont, fontFor, fontSupports, getFont } from './lib/fonts.js'
 import { arrange, layoutDesign, measureTags, shuffle } from './lib/layout.js'
 import { autoRoles, highlightsFor, teeHex } from './lib/style.js'
 import { mockupJpeg } from './lib/photoMockup.js'
+import { saveDraft, warmDraft } from './lib/draft.js'
 import { tagLabel } from './lib/text.js'
 
 const STEPS = [
@@ -15,6 +16,11 @@ const STEPS = [
   { id: 'layout', label: 'Layout' },
   { id: 'preview', label: 'Preview' },
 ]
+
+// Funnel events through the site-wide /shared/track.js (consent-aware; absent in `vite dev`).
+function track(event, data) {
+  try { window.McgtTrack?.track(event, data) } catch { /* analytics must never break the page */ }
+}
 
 // Start-page sample: slang people use about themselves, UK and Manchester first,
 // across Gen Z and millennials, plus the personality labels people put in bios
@@ -103,7 +109,12 @@ export default function App() {
     if (product && !product.sizes.includes(size)) setSize(product.sizes.includes('L') ? 'L' : product.sizes[0])
   }, [product, size])
 
-  const addTag = (text) => setTags((list) => (list.length >= MAX_TAGS ? list : [
+  const started = useRef(false)
+  const addTag = (text) => {
+    if (!started.current) { started.current = true; track('design_start', { label: 'hashtag_tee' }) }
+    addTagRaw(text)
+  }
+  const addTagRaw = (text) => setTags((list) => (list.length >= MAX_TAGS ? list : [
     ...list, { id: newId(), text, weight: 1, fontId: fontFor(text, globalFont) },
   ]))
   const removeTag = (id) => setTags((list) => list.filter((t) => t.id !== id))
@@ -130,7 +141,12 @@ export default function App() {
     go('layout')
   }
 
-  const go = (id) => { setStep(id); window.scrollTo(0, 0) }
+  const go = (id) => {
+    if (id !== step && id !== 'intro') track('design_step', { label: `${id}:${tags.length}` })
+    if (id === 'preview') warmDraft()
+    setStep(id)
+    window.scrollTo(0, 0)
+  }
 
   const clearTags = () => {
     if (tags.length > 1 && !window.confirm(`Remove all ${tags.length} hashtags?`)) return
@@ -167,16 +183,26 @@ export default function App() {
       const thumb = await mockupJpeg({ teeColour, side, design: renderDesignCanvas(design, 600) })
       const label = tags.map(tagLabel).join(' ')
       const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')
+      const uploadName = `hashtag-tee-${shape}-${side}-${stamp}.png`
+      const lineQty = Math.max(1, Math.min(99, Math.round(qty) || 1))
+      // Draft to Drive alongside the cart write; wait at most 15 s for it, then carry on.
+      const draft = saveDraft({
+        blob,
+        name: uploadName,
+        details: { productId: product.id, colour: teeColour, size, qty: lineQty, shape, side, tags: tags.map(tagLabel), page: window.location.pathname },
+      })
       await addHashtagLineToCart({
         product,
         colour: teeColour,
         blob,
         thumb,
         designLabel: `${label.length > 60 ? `${label.slice(0, 57)}…` : label} · ${shape} · ${side}`,
-        uploadName: `hashtag-tee-${shape}-${side}-${stamp}.png`,
+        uploadName,
         size,
-        qty: Math.max(1, Math.min(99, Math.round(qty) || 1)),
+        qty: lineQty,
       })
+      const draftId = await Promise.race([draft, new Promise((r) => setTimeout(() => r(null), 15000))])
+      track('place_order_click', { label: draftId || 'no-draft' })
       window.location.assign('/cart/')
     } catch (err) {
       console.error(err)
