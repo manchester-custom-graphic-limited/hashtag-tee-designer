@@ -202,6 +202,9 @@ export function StepLayout({
 // 4 · Preview + order
 // ---------------------------------------------------------------------------
 
+// Personalised tees are bought in ones and twos; bigger runs go through a bulk quote.
+const QTY_CHOICES = [1, 2, 3, 4, 5]
+
 export function StepPreview({
   design, teeColour, side, onTee, onSide, product, size, onSize, qty, onQty, blocker, busy, error, onOrder, onBack,
 }) {
@@ -249,22 +252,36 @@ export function StepPreview({
       </div>
 
       <div className="order">
-        <div className="row center">
-          <label className="fld small">
-            <span>Size</span>
-            <select value={size} onChange={(e) => onSize(e.target.value)} disabled={!product}>
-              {(product?.sizes || []).map((s) => <option key={s}>{s}</option>)}
-            </select>
-          </label>
-          <label className="fld small">
-            <span>Qty</span>
-            <input type="number" min="1" max="99" value={qty} onChange={(e) => onQty(e.target.value)} />
-          </label>
+        <div className="order-card">
+          <div className="opt">
+            <span className="opt-label" id="size-label">Size</span>
+            <div className="chips" role="radiogroup" aria-labelledby="size-label">
+              {(product?.sizes || []).map((s) => (
+                <button key={s} role="radio" aria-checked={size === s} className={size === s ? 'on' : ''}
+                  onClick={() => onSize(s)}>{s}</button>
+              ))}
+            </div>
+          </div>
+          <div className="opt">
+            <span className="opt-label" id="qty-label">Quantity</span>
+            <div className="chips" role="radiogroup" aria-labelledby="qty-label">
+              {QTY_CHOICES.map((n) => (
+                <button key={n} role="radio" aria-checked={qty === n} className={qty === n ? 'on' : ''}
+                  onClick={() => onQty(n)}>{n}</button>
+              ))}
+            </div>
+          </div>
           {price ? (
             <div className="price">
-              {was && <s aria-label={`was £${was.toFixed(2)}`}>£{was.toFixed(2)}</s>}
-              £{price.toFixed(2)}
-              {was && <small>Launch offer</small>}
+              <div className="price-each">
+                {was && <span className="badge">Launch offer</span>}
+                <span className="now">£{price.toFixed(2)}</span>
+                {was && <s aria-label={`was £${was.toFixed(2)}`}>£{was.toFixed(2)}</s>}
+                <span className="each">each</span>
+              </div>
+              {qty > 1 && (
+                <div className="price-total">{qty} tees · <b>£{(price * qty).toFixed(2)}</b></div>
+              )}
             </div>
           ) : null}
         </div>

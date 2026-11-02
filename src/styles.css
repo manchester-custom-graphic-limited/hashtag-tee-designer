@@ -188,6 +188,19 @@ input[type=range] { padding: 0; border: 0; background: none; accent-color: var(-
 .mockup canvas { display: block; width: 100%; height: auto; aspect-ratio: 1274 / 1280; }
 .mockup.loading canvas { opacity: 0; }
 .order { display: flex; flex-direction: column; align-items: center; gap: 12px; }
-.price { font-size: 1.6rem; font-weight: 800; padding-bottom: 6px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-.price s { font-size: 1rem; font-weight: 600; color: var(--muted); }
-.price small { font-size: .75rem; font-weight: 700; color: #fff; background: var(--accent); border-radius: 999px; padding: 3px 9px; align-self: center; }
+.order-card { width: min(100%, 420px); background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.opt { display: flex; flex-direction: column; gap: 8px; }
+.opt-label { font-size: .8rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button { min-width: 48px; height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-weight: 700; }
+.chips button:hover:not(.on) { border-color: var(--muted); }
+.chips button.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.price { border-top: 1px solid var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 4px; }
+.price-each { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.price .now { font-size: 1.75rem; font-weight: 800; line-height: 1; }
+.price s { font-size: 1rem; color: var(--muted); }
+.price .each { font-size: .9rem; color: var(--muted); }
+.price .badge { flex-basis: 100%; width: max-content; font-size: .72rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #fff; background: var(--accent); border-radius: 999px; padding: 3px 10px; }
+.price-total { font-size: .95rem; color: var(--muted); }
+.price-total b { color: var(--ink); }
+.order .primary.big { width: min(100%, 420px); }
