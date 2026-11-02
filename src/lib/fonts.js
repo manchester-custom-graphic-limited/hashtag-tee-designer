@@ -28,10 +28,11 @@ export const FONTS = [
     load: () => import('@fontsource/rubik/800.css') },
   { id: 'noto', label: 'Noto Sans', family: 'Noto Sans', weight: 800, scripts: ['latin', 'cyrillic', 'greek', 'devanagari'],
     load: () => import('@fontsource/noto-sans/800.css') },
-  { id: 'sc', label: 'Noto Sans 简体中文', family: 'Noto Sans SC', weight: 800, scripts: ['latin', 'han'],
-    load: () => import('@fontsource/noto-sans-sc/800.css') },
+  // Traditional before Simplified: a Chinese tag defaults to 繁體中文 (the first font that fits).
   { id: 'tc', label: 'Noto Sans 繁體中文', family: 'Noto Sans TC', weight: 800, scripts: ['latin', 'han'],
     load: () => import('@fontsource/noto-sans-tc/800.css') },
+  { id: 'sc', label: 'Noto Sans 简体中文', family: 'Noto Sans SC', weight: 800, scripts: ['latin', 'han'],
+    load: () => import('@fontsource/noto-sans-sc/800.css') },
   { id: 'jp', label: 'Noto Sans 日本語', family: 'Noto Sans JP', weight: 800, scripts: ['latin', 'han', 'kana', 'cyrillic'],
     load: () => import('@fontsource/noto-sans-jp/800.css') },
   { id: 'kr', label: 'Noto Sans 한국어', family: 'Noto Sans KR', weight: 800, scripts: ['latin', 'hangul'],
