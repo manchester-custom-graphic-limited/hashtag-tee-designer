@@ -9,16 +9,20 @@ const EASE = 0.2
 // The typeset design on a tee-coloured panel. Tags glide to their layout slots.
 // Dragging a tag over another reorders the list; the parent re-typesets, so the
 // other tags are pushed and squeezed and the whole block re-forms its shape.
+// popIn: tags added after the first paint grow into their slot from a dot.
+// onTap (with interactive off): tapping a tag calls onTap(id) instead of select/drag.
 //
 // tap: select · drag: move · arrows ←/→ on a selected tag: move it earlier/later
 export default function DesignCanvas({
   tags, layout, teeColour, teeHex, highlight, selectedId, onSelect, onReorder, interactive = true,
+  popIn = false, onTap,
 }) {
   const canvasRef = useRef(null)
   const size = useRef({ css: 1, dpr: 1 })
   const anim = useRef({}) // id → displayed placement
   const drag = useRef(null)
   const frame = useRef(0)
+  const painted = useRef(false)
   const props = useRef()
   props.current = { tags, layout, teeColour, teeHex, highlight, selectedId }
 
@@ -80,7 +84,22 @@ export default function DesignCanvas({
     let moving = false
     for (const [id, t] of Object.entries(tgt)) {
       const a = anim.current[id]
-      if (!a) { anim.current[id] = { ...t }; continue }
+      if (!a) {
+        if (popIn && painted.current) {
+          // Start at 15% size around the slot's centre; the easing below grows it in.
+          const s = 0.15
+          const cx = t.x + t.w / 2
+          const cy = t.y + t.h / 2
+          const x = cx - (t.w * s) / 2
+          const y = cy - (t.h * s) / 2
+          anim.current[id] = {
+            x, y, w: t.w * s, h: t.h * s, fontPx: t.fontPx * s,
+            drawX: x + (t.drawX - t.x) * s, baseline: y + (t.baseline - t.y) * s,
+          }
+          moving = true
+        } else anim.current[id] = { ...t }
+        continue
+      }
       if (drag.current?.active && drag.current.id === id) continue
       for (const f of FIELDS) {
         const delta = t[f] - a[f]
@@ -89,6 +108,7 @@ export default function DesignCanvas({
     }
     for (const id of Object.keys(anim.current)) if (!tgt[id]) delete anim.current[id]
     paint()
+    painted.current = true
     if (moving) frame.current = requestAnimationFrame(tick)
   }
   const kick = () => { if (!frame.current) frame.current = requestAnimationFrame(tick) }
@@ -125,7 +145,11 @@ export default function DesignCanvas({
   }
 
   const onPointerDown = (e) => {
-    if (!interactive) return
+    if (!interactive) {
+      const id = onTap && tagAt(toUnits(e))
+      if (id) onTap(id)
+      return
+    }
     const pt = toUnits(e)
     const id = tagAt(pt)
     if (!id) { onSelect(null); return }
@@ -191,7 +215,8 @@ export default function DesignCanvas({
       ref={canvasRef}
       className={`design-canvas ${layout.shape}`}
       tabIndex={interactive ? 0 : -1}
-      aria-label="Your hashtag design. Tap a hashtag to edit it, drag it to move it."
+      aria-label={interactive ? 'Your hashtag design. Tap a hashtag to edit it, drag it to move it.'
+        : onTap ? 'Your hashtags, typeset. Tap one to remove it.' : 'A sample hashtag design.'}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}

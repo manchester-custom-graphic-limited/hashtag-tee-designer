@@ -2,11 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { MAX_TAGS, SHAPES, SIDES, TEE_COLOURS, WEIGHT_MAX, WEIGHT_MIN } from '../config.js'
 import { renderDesignCanvas } from '../lib/exportPrint.js'
 import { fontsFor } from '../lib/fonts.js'
-import { highlightsFor, inkFor, ROLES } from '../lib/style.js'
+import { autoRoles, highlightsFor, inkFor, ROLES } from '../lib/style.js'
 import { composeMockup } from '../lib/photoMockup.js'
 import { cleanTagText, tagLabel } from '../lib/text.js'
 import DesignCanvas from './DesignCanvas.jsx'
-import TagJar from './TagJar.jsx'
 
 // ---------------------------------------------------------------------------
 // 1 · Entrance
@@ -32,11 +31,13 @@ export function StepIntro({ sample, onStart }) {
 // 2 · Hashtags
 // ---------------------------------------------------------------------------
 
-export function StepTags({ tags, onAdd, onRemove, onClear, onNext }) {
+export function StepTags({ tags, layout, teeColour, teeHex, highlight, onAdd, onRemove, onClear, onNext }) {
   const [draft, setDraft] = useState('')
   const [note, setNote] = useState('')
   const input = useRef(null)
   const full = tags.length >= MAX_TAGS
+  // Live typesetting: the tags in the order typed, coloured as the Layout step will start them.
+  const styled = useMemo(() => autoRoles(tags, layout.placed), [tags, layout])
 
   useEffect(() => { input.current?.focus() }, [])
 
@@ -74,7 +75,14 @@ export function StepTags({ tags, onAdd, onRemove, onClear, onNext }) {
         <p className="hint">{note || 'Letters, numbers and _ — any language. Spaces and punctuation drop out, like a real hashtag.'}</p>
       </form>
 
-      <TagJar tags={tags} onRemove={onRemove} />
+      <div className={`tag-sphere${full ? ' full' : ''}${tags.length ? '' : ' empty'}`}>
+        <DesignCanvas
+          tags={styled} layout={layout} teeColour={teeColour} teeHex={teeHex} highlight={highlight}
+          interactive={false} popIn onTap={onRemove} onSelect={() => {}} onReorder={() => {}}
+        />
+        {!tags.length && <p className="tag-sphere-empty">Your hashtags take shape here</p>}
+      </div>
+      {tags.length > 0 && <p className="hint">Tap a hashtag in the sphere to remove it.</p>}
 
       {tags.length > 0 && (
         <button type="button" className="link clear-all" onClick={onClear}>Clear all</button>

@@ -269,7 +269,10 @@ export default function App() {
           />
         )}
         {step === 'tags' && (
-          <StepTags tags={tags} onAdd={addTag} onRemove={removeTag} onClear={clearTags} onNext={toLayout} />
+          <StepTags
+            tags={tags} layout={layout} teeColour={teeColour} teeHex={hex} highlight={highlight}
+            onAdd={addTag} onRemove={removeTag} onClear={clearTags} onNext={toLayout}
+          />
         )}
         {step === 'layout' && (
           <StepLayout
