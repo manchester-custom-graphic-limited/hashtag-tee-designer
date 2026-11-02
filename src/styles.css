@@ -210,4 +210,15 @@ input[type=range] { padding: 0; border: 0; background: none; accent-color: var(-
 .price-total { font-size: .95rem; color: var(--muted); }
 .price-total b { color: var(--ink); }
 .order .primary.big { width: min(100%, 420px); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+/* Wide screens: the tee on the left, size/qty/price/Place Order beside it, so ordering
+   needs no scrolling. Phones keep the stacked layout. */
+@media (min-width: 900px) {
+  .preview-step { max-width: 1120px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
+    grid-template-rows: auto auto; column-gap: 40px; row-gap: 18px; align-items: start; }
+  .preview-step > .row { grid-column: 1; grid-row: 1; }
+  .preview-step > .mockup { grid-column: 1; grid-row: 2; width: min(100%, 600px, calc(100dvh - 300px)); }
+  .preview-step > .order { grid-column: 2; grid-row: 1 / span 2; align-self: center; align-items: stretch; }
+  .preview-step > .order .order-card, .preview-step > .order .primary.big { width: 100%; }
+}
 .countdown { font-size: .78rem; font-weight: 700; letter-spacing: .02em; opacity: .9; font-variant-numeric: tabular-nums; }
