@@ -255,7 +255,7 @@ export function StepPreview({
         <div className="order-card">
           <div className="opt">
             <span className="opt-label" id="size-label">Size</span>
-            <div className="chips" role="radiogroup" aria-labelledby="size-label">
+            <div className="choices" role="radiogroup" aria-labelledby="size-label">
               {(product?.sizes || []).map((s) => (
                 <button key={s} role="radio" aria-checked={size === s} className={size === s ? 'on' : ''}
                   onClick={() => onSize(s)}>{s}</button>
@@ -264,7 +264,7 @@ export function StepPreview({
           </div>
           <div className="opt">
             <span className="opt-label" id="qty-label">Quantity</span>
-            <div className="chips" role="radiogroup" aria-labelledby="qty-label">
+            <div className="choices" role="radiogroup" aria-labelledby="qty-label">
               {QTY_CHOICES.map((n) => (
                 <button key={n} role="radio" aria-checked={qty === n} className={qty === n ? 'on' : ''}
                   onClick={() => onQty(n)}>{n}</button>

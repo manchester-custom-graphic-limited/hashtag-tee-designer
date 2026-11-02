@@ -191,10 +191,10 @@ input[type=range] { padding: 0; border: 0; background: none; accent-color: var(-
 .order-card { width: min(100%, 420px); background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 14px; }
 .opt { display: flex; flex-direction: column; gap: 8px; }
 .opt-label { font-size: .8rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chips button { min-width: 48px; height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-weight: 700; }
-.chips button:hover:not(.on) { border-color: var(--muted); }
-.chips button.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.choices button { min-width: 48px; height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); font-weight: 700; }
+.choices button:hover:not(.on) { border-color: var(--muted); }
+.choices button.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .price { border-top: 1px solid var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 4px; }
 .price-each { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
 .price .now { font-size: 1.75rem; font-weight: 800; line-height: 1; }
