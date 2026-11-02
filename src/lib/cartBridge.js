@@ -5,6 +5,7 @@
 // reprices every order server-side.
 
 import { PRODUCT_ID } from '../config.js'
+import { sale } from './sale.js'
 
 const SHEET_ID = '1yHxRDrkORN1wC5FEvo91uc5Ba0utf8Ck1J7TM61kqw0'
 
@@ -46,8 +47,8 @@ export function readProduct(P, V, id) {
   const sizes = String(row[P.head.sizes] || '').split(',').map((s) => s.trim()).filter(Boolean)
   // Per-colour variant prices override the product price (black costs more to print).
   // A sale (sale_price + sale_ends_at, on the Variants row or else the Products row) is
-  // checked by /shared/cart-store.js's McgtCart.sale, the same rule the checkout function
-  // charges by. Worked out on each call, so an offer that ends while the page is open ends.
+  // checked by ./sale.js, the same rule the checkout function charges by. Worked out on
+  // each call, so an offer that ends while the page is open ends.
   const cellOf = (H, r, name) => (H.head[name] == null ? '' : r[H.head[name]] ?? '')
   const pSale = [cellOf(P, row, 'sale_price'), cellOf(P, row, 'sale_ends_at')]
   const variants = {}
@@ -64,8 +65,7 @@ export function readProduct(P, V, id) {
   if (!sizes.length || !(base > 0 || Object.keys(variants).length)) return null
   const saleFor = (colour) => {
     const v = variants[colour] || { regular: base, sale: pSale }
-    const fn = typeof window !== 'undefined' && window.McgtCart?.sale
-    return fn ? fn(v.regular, v.sale[0], v.sale[1]) : { price: v.regular, was: null, ends: null }
+    return sale(v.regular, v.sale[0], v.sale[1])
   }
   return {
     id,

@@ -269,26 +269,24 @@ export function StepPreview({
 
       <div className="order">
         <div className="order-card">
-          <div className="opt-pair">
-            <div className="opt">
-              <span className="opt-label" id="colour-label">Colour</span>
-              <div className="choices" role="radiogroup" aria-labelledby="colour-label">
-                {TEE_COLOURS.map((c) => (
-                  <button key={c.id} role="radio" aria-checked={teeColour === c.id} className={teeColour === c.id ? 'on' : ''}
-                    onClick={() => onTee(c.id)}>
-                    <i className="dot" style={{ background: c.hex }} /> {c.id}
-                  </button>
-                ))}
-              </div>
+          <div className="opt">
+            <span className="opt-label" id="colour-label">Colour</span>
+            <div className="choices" role="radiogroup" aria-labelledby="colour-label">
+              {TEE_COLOURS.map((c) => (
+                <button key={c.id} role="radio" aria-checked={teeColour === c.id} className={teeColour === c.id ? 'on' : ''}
+                  onClick={() => onTee(c.id)}>
+                  <i className="dot" style={{ background: c.hex }} /> {c.id}
+                </button>
+              ))}
             </div>
-            <div className="opt">
-              <span className="opt-label" id="side-label">Print on</span>
-              <div className="choices" role="radiogroup" aria-labelledby="side-label">
-                {SIDES.map((sd) => (
-                  <button key={sd.id} role="radio" aria-checked={side === sd.id} className={side === sd.id ? 'on' : ''}
-                    onClick={() => onSide(sd.id)}>{sd.label}</button>
-                ))}
-              </div>
+          </div>
+          <div className="opt">
+            <span className="opt-label" id="side-label">Print on</span>
+            <div className="choices" role="radiogroup" aria-labelledby="side-label">
+              {SIDES.map((sd) => (
+                <button key={sd.id} role="radio" aria-checked={side === sd.id} className={side === sd.id ? 'on' : ''}
+                  onClick={() => onSide(sd.id)}>{sd.label}</button>
+              ))}
             </div>
           </div>
           <div className="opt">

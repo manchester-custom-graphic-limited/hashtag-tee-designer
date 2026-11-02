@@ -224,5 +224,4 @@ input[type=range] { padding: 0; border: 0; background: none; accent-color: var(-
   background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
   font-size: .9rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .countdown b { font-weight: 800; }
-.opt-pair { display: flex; flex-wrap: wrap; gap: 14px 18px; }
 .choices .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--line); display: inline-block; margin-right: 6px; vertical-align: -1px; }
