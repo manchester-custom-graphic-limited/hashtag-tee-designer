@@ -209,16 +209,20 @@ input[type=range] { padding: 0; border: 0; background: none; accent-color: var(-
 .price .badge { flex-basis: 100%; width: max-content; font-size: .72rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #fff; background: var(--accent); border-radius: 999px; padding: 3px 10px; }
 .price-total { font-size: .95rem; color: var(--muted); }
 .price-total b { color: var(--ink); }
-.order .primary.big { width: min(100%, 420px); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.order .primary.big { width: min(100%, 420px); }
 
 /* Wide screens: the tee on the left, size/qty/price/Place Order beside it, so ordering
    needs no scrolling. Phones keep the stacked layout. */
 @media (min-width: 900px) {
-  .preview-step { max-width: 1120px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
-    grid-template-rows: auto auto; column-gap: 40px; row-gap: 18px; align-items: start; }
-  .preview-step > .row { grid-column: 1; grid-row: 1; }
-  .preview-step > .mockup { grid-column: 1; grid-row: 2; width: min(100%, 600px, calc(100dvh - 300px)); }
-  .preview-step > .order { grid-column: 2; grid-row: 1 / span 2; align-self: center; align-items: stretch; }
-  .preview-step > .order .order-card, .preview-step > .order .primary.big { width: 100%; }
+  .preview-step { max-width: 1120px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+    column-gap: 40px; align-items: center; }
+  .preview-step > .mockup { grid-column: 1; width: min(100%, 620px, calc(100dvh - 240px)); }
+  .preview-step > .order { grid-column: 2; align-items: stretch; }
+  .preview-step > .order .order-card, .preview-step > .order .primary.big, .preview-step > .order .countdown { width: 100%; }
 }
-.countdown { font-size: .78rem; font-weight: 700; letter-spacing: .02em; opacity: .9; font-variant-numeric: tabular-nums; }
+.countdown { width: min(100%, 420px); box-sizing: border-box; text-align: center; padding: 9px 12px; border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  font-size: .9rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.countdown b { font-weight: 800; }
+.opt-pair { display: flex; flex-wrap: wrap; gap: 14px 18px; }
+.choices .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--line); display: inline-block; margin-right: 6px; vertical-align: -1px; }

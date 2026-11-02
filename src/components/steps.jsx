@@ -230,7 +230,7 @@ function Countdown({ until }) {
   const hms = `${pad(Math.floor((s % 86400) / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`
   return (
     <span className="countdown" role="timer" aria-live="off">
-      Offer ends in {d > 0 && `${d}d `}{hms}
+      <span aria-hidden="true">⏱</span> Offer ends in <b>{d > 0 && `${d}d `}{hms}</b>
     </span>
   )
 }
@@ -263,29 +263,34 @@ export function StepPreview({
 
   return (
     <section className="step preview-step">
-      <div className="row center">
-        <div className="seg" role="radiogroup" aria-label="Tee colour">
-          {TEE_COLOURS.map((c) => (
-            <button key={c.id} role="radio" aria-checked={teeColour === c.id} className={teeColour === c.id ? 'on' : ''}
-              onClick={() => onTee(c.id)}>
-              <i className="dot" style={{ background: c.hex }} /> {c.id}
-            </button>
-          ))}
-        </div>
-        <div className="seg" role="radiogroup" aria-label="Print on">
-          {SIDES.map((s) => (
-            <button key={s.id} role="radio" aria-checked={side === s.id} className={side === s.id ? 'on' : ''}
-              onClick={() => onSide(s.id)}>{s.label}</button>
-          ))}
-        </div>
-      </div>
-
       <div className={`mockup${ready ? '' : ' loading'}`}>
         <canvas ref={canvasRef} role="img" aria-label={`${teeColour} tee, design on the ${side}`} />
       </div>
 
       <div className="order">
         <div className="order-card">
+          <div className="opt-pair">
+            <div className="opt">
+              <span className="opt-label" id="colour-label">Colour</span>
+              <div className="choices" role="radiogroup" aria-labelledby="colour-label">
+                {TEE_COLOURS.map((c) => (
+                  <button key={c.id} role="radio" aria-checked={teeColour === c.id} className={teeColour === c.id ? 'on' : ''}
+                    onClick={() => onTee(c.id)}>
+                    <i className="dot" style={{ background: c.hex }} /> {c.id}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="opt">
+              <span className="opt-label" id="side-label">Print on</span>
+              <div className="choices" role="radiogroup" aria-labelledby="side-label">
+                {SIDES.map((sd) => (
+                  <button key={sd.id} role="radio" aria-checked={side === sd.id} className={side === sd.id ? 'on' : ''}
+                    onClick={() => onSide(sd.id)}>{sd.label}</button>
+                ))}
+              </div>
+            </div>
+          </div>
           <div className="opt">
             <span className="opt-label" id="size-label">Size</span>
             <div className="choices" role="radiogroup" aria-labelledby="size-label">
@@ -318,9 +323,9 @@ export function StepPreview({
             </div>
           ) : null}
         </div>
+        {was && <Countdown until={product?.endsFor(teeColour)} />}
         <button className="primary big" onClick={onOrder} disabled={Boolean(blocker) || busy}>
           {busy ? 'Placing order…' : 'Place Order'}
-          {was && !busy && <Countdown until={product?.endsFor(teeColour)} />}
         </button>
         {blocker && <p className="hint">{blocker}</p>}
         {error && <p className="err">{error}</p>}
