@@ -107,6 +107,7 @@ export function StepTags({ tags, layout, teeColour, teeHex, highlight, onAdd, on
 export function StepLayout({
   tags, layout, shape, teeColour, teeHex, highlight, globalFont,
   onShape, onUpdateTag, onReorder, onHighlight, onFontAll, onRestyle, onBack, onNext,
+  lineSpacing, onLineSpacing,
 }) {
   const [selectedId, setSelectedId] = useState(null)
   const selected = tags.find((t) => t.id === selectedId)
@@ -192,6 +193,12 @@ export function StepLayout({
               </label>
               <button type="button" className="pill" onClick={onRestyle}>🔀 Shuffle</button>
             </div>
+            <label className="fld">
+              <span>Line spacing</span>
+              <input type="range" min="0" max="4" step="0.1" value={lineSpacing}
+                aria-valuetext={lineSpacing < 0.5 ? 'tight' : lineSpacing > 2 ? 'airy' : 'normal'}
+                onChange={(e) => onLineSpacing(Number(e.target.value))} />
+            </label>
           </>
         )}
       </div>

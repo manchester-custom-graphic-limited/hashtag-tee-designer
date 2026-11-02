@@ -18,7 +18,7 @@ import { tagLabel } from './text.js'
 export const S = 1000
 const UNIT = 100 // font px that tags are measured at
 const WORD_GAP = 0.26 // gap between tags in a row, × font size
-const ROW_GAP = 0.018 * S
+const ROW_GAP = 0.018 * S // at line spacing 1; the customer's slider scales it (0 = rows touching)
 const SPHERE_FILL = 0.97 // keep ink just inside the circle
 
 // Ink metrics of each tag at UNIT px.
@@ -70,11 +70,14 @@ function weighted(tags, ms) {
 
 // ---- square: every row exactly S wide; row gaps absorb small height errors ----
 
-function fitSquare(rows) {
+function fitSquare(rows, spacing = 1) {
   const scales = rows.map((r) => S / r.nw)
   const inkH = rows.reduce((s, r, i) => s + scales[i] * r.lh, 0)
   const n = rows.length
-  const gap = n > 1 ? Math.min(0.05 * S, Math.max(0.01 * S, (S - inkH) / (n - 1))) : 0
+  // Gap that fills the square, kept within bounds scaled by the line spacing; a wide
+  // spacing can push rows further apart than that (the block then shrinks to fit).
+  const fill = Math.min(0.05 * S * spacing, Math.max(0.01 * S * spacing, (S - inkH) / (n - 1)))
+  const gap = n > 1 ? Math.max(fill, 0.025 * S * spacing) : 0
   const total = inkH + gap * (n - 1)
   const tops = []
   let y = 0
@@ -104,7 +107,7 @@ function fitRowInCircle(r, yTop) {
   return lo
 }
 
-function runSphere(rows, t0) {
+function runSphere(rows, t0, spacing = 1) {
   const scales = []
   const tops = []
   let y = t0
@@ -112,21 +115,21 @@ function runSphere(rows, t0) {
     const s = fitRowInCircle(r, y)
     tops.push(y)
     scales.push(s)
-    y += s * r.lh + ROW_GAP
+    y += s * r.lh + ROW_GAP * spacing
   }
-  return { scales, tops, end: y - ROW_GAP }
+  return { scales, tops, end: y - ROW_GAP * spacing }
 }
 
-function fitSphere(rows) {
+function fitSphere(rows, spacing = 1) {
   let best = null
   for (let k = 0; k <= 24; k++) {
     const t0 = (k / 24) * R
-    const run = runSphere(rows, t0)
+    const run = runSphere(rows, t0, spacing)
     if (run.end > S) continue
     const residual = Math.abs(S - run.end - t0)
     if (!best || residual < best.residual) best = { ...run, residual }
   }
-  if (!best) best = { ...runSphere(rows, 0), residual: S }
+  if (!best) best = { ...runSphere(rows, 0, spacing), residual: S }
   let ink = 0
   rows.forEach((r, i) => { ink += best.scales[i] * r.nw * best.scales[i] * r.lh })
   return {
@@ -147,14 +150,14 @@ function sizeSpread(rows, scales) {
   return v.reduce((a, b) => a + (b - mean) ** 2, 0) / v.length
 }
 
-function bestSplit(tags, shape, raw) {
+function bestSplit(tags, shape, raw, spacing = 1) {
   const ms = weighted(tags, raw)
   const n = tags.length
   const fit = shape === 'square' ? fitSquare : fitSphere
   let best = null
   for (let mask = 0; mask < 1 << (n - 1); mask++) {
     const rows = rowsFor(mask, n).map((r) => rowMetrics(ms, r))
-    const f = fit(rows)
+    const f = fit(rows, spacing)
     if (f.scales.some((s) => !(s > 0))) continue
     const cost = 6 * f.mismatch ** 2 + 2.5 * (1 - f.coverage) ** 2 + 1.2 * sizeSpread(rows, f.scales)
     if (!best || cost < best.cost) best = { cost, rows, f, ms }
@@ -165,7 +168,7 @@ function bestSplit(tags, shape, raw) {
 // Picks a starting order for the shape. A sphere needs short tags at the top and
 // bottom, where the circle is narrow, and long ones across the middle; a square
 // takes any order. Tries a few candidate orders and keeps the best-scoring one.
-export function arrange(tags, shape, ms) {
+export function arrange(tags, shape, ms, spacing = 1) {
   if (tags.length < 3) return tags
   const idx = tags.map((_, i) => i)
   const byWidth = [...idx].sort((a, b) => ms[a].w * (tags[a].weight || 1) - ms[b].w * (tags[b].weight || 1))
@@ -177,15 +180,15 @@ export function arrange(tags, shape, ms) {
   for (const order of candidates) {
     const t = order.map((i) => tags[i])
     const m = order.map((i) => ms[i])
-    const b = bestSplit(t, shape, m)
+    const b = bestSplit(t, shape, m, spacing)
     if (b && (!best || b.cost < best.cost - 1e-9)) best = { cost: b.cost, order }
   }
   return best.order.map((i) => tags[i])
 }
 
-export function layoutDesign(tags, shape, ms) {
+export function layoutDesign(tags, shape, ms, spacing = 1) {
   if (!tags.length) return { placed: [], shape }
-  const { rows, f, ms: wms } = bestSplit(tags, shape, ms)
+  const { rows, f, ms: wms } = bestSplit(tags, shape, ms, spacing)
 
   let placed = []
   rows.forEach((r, i) => {
@@ -233,7 +236,7 @@ export function layoutDesign(tags, shape, ms) {
 // "Shuffle": a different arrangement that still forms the shape. Scores a batch of
 // random orders plus small variations of the shape-filling order from arrange(),
 // keeps the best few that differ from the current order, and picks one at random.
-export function shuffle(tags, shape, ms, random = Math.random) {
+export function shuffle(tags, shape, ms, random = Math.random, spacing = 1) {
   if (tags.length < 2) return tags
   const n = tags.length
   const idx = tags.map((_, i) => i)
@@ -260,7 +263,7 @@ export function shuffle(tags, shape, ms, random = Math.random) {
   }
   if (!candidates.length) return tags
   const scored = candidates
-    .map((order) => ({ order, cost: bestSplit(order.map((i) => tags[i]), shape, order.map((i) => ms[i])).cost }))
+    .map((order) => ({ order, cost: bestSplit(order.map((i) => tags[i]), shape, order.map((i) => ms[i]), spacing).cost }))
     .sort((a, b) => a.cost - b.cost)
   const pool = scored.slice(0, Math.min(5, scored.length))
   return pool[Math.floor(random() * pool.length)].order.map((i) => tags[i])

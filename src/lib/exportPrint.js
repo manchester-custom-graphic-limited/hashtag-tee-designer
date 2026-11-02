@@ -37,6 +37,7 @@ export async function renderPrintPng(design) {
         teeColour: design.teeColour,
         side: design.side,
         shape: design.shape,
+        lineSpacing: design.lineSpacing ?? 1,
         dpi,
         sizeMm: DESIGN_MM,
         placement: `${design.side}: centred, top edge ${PLACEMENT[design.side].topBelowCollarMm} mm below the collar seam`,

@@ -27,7 +27,7 @@ function track(event, data) {
 // (MBTI type, star sign). Research notes: README "Sample hashtags".
 const SAMPLE_TAGS = ['MainCharacter', 'INFP', 'Scorpio', 'Buzzin', 'OurKid', 'Delulu', 'Mint', 'Manchester']
   .map((text, i) => ({ id: `s${i}`, text, weight: 1, fontId: fontFor(text, DEFAULT_FONT_ID) }))
-const arrangeFor = (tags, shape) => arrange(tags, shape, measureTags(measureCtx, tags))
+const arrangeFor = (tags, shape, spacing = 1) => arrange(tags, shape, measureTags(measureCtx, tags), spacing)
 
 const newId = () => Math.random().toString(36).slice(2, 10)
 const measureCtx = document.createElement('canvas').getContext('2d')
@@ -40,11 +40,11 @@ function loadSaved() {
   return {}
 }
 
-function useLayout(tags, shape, fontsVersion) {
+function useLayout(tags, shape, fontsVersion, spacing = 1) {
   return useMemo(
-    () => layoutDesign(tags, shape, measureTags(measureCtx, tags)),
+    () => layoutDesign(tags, shape, measureTags(measureCtx, tags), spacing),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tags.map((t) => `${t.id}:${t.text}:${t.fontId}:${t.weight}`).join('|'), shape, fontsVersion],
+    [tags.map((t) => `${t.id}:${t.text}:${t.fontId}:${t.weight}`).join('|'), shape, fontsVersion, spacing],
   )
 }
 
@@ -57,6 +57,7 @@ export default function App() {
   const [side, setSide] = useState(saved.side || 'front')
   const [highlight, setHighlight] = useState(saved.highlight || HIGHLIGHTS[0])
   const [globalFont, setGlobalFont] = useState(saved.globalFont || DEFAULT_FONT_ID)
+  const [lineSpacing, setLineSpacing] = useState(saved.lineSpacing ?? 1)
   const [fontsVersion, setFontsVersion] = useState(0)
   const [product, setProduct] = useState(undefined) // undefined = loading
   const [size, setSize] = useState('')
@@ -70,9 +71,9 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, tags, shape, teeColour, side, highlight, globalFont }))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, tags, shape, teeColour, side, highlight, globalFont, lineSpacing }))
     } catch { /* ignore */ }
-  }, [step, tags, shape, teeColour, side, highlight, globalFont])
+  }, [step, tags, shape, teeColour, side, highlight, globalFont, lineSpacing])
 
   // Load each font for the exact text it draws (CJK fonts arrive in chunks),
   // then re-measure and re-typeset.
@@ -86,7 +87,7 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fontKey])
 
-  const layout = useLayout(tags, shape, fontsVersion)
+  const layout = useLayout(tags, shape, fontsVersion, lineSpacing)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const sampleTags = useMemo(() => (step === 'intro' ? arrangeFor(SAMPLE_TAGS, 'sphere') : []), [step, fontsVersion])
   const sampleLayout = useLayout(sampleTags, 'sphere', fontsVersion)
@@ -127,17 +128,17 @@ export default function App() {
   }
   // Shape changes re-pick the order for the shape; Shuffle varies it; dragging
   // is how the customer overrides it.
-  const changeShape = (next) => { setShape(next); setTags((list) => arrangeFor(list, next)) }
+  const changeShape = (next) => { setShape(next); setTags((list) => arrangeFor(list, next, lineSpacing)) }
   // Shuffle: a new order that still forms the shape, restyled from its sizes.
   // Custom colours, fonts and sizes the customer set are kept.
   const restyle = () => {
-    const ordered = shuffle(tags, shape, measureTags(measureCtx, tags))
-    const styled = autoRoles(ordered, layoutDesign(ordered, shape, measureTags(measureCtx, ordered)).placed)
+    const ordered = shuffle(tags, shape, measureTags(measureCtx, tags), Math.random, lineSpacing)
+    const styled = autoRoles(ordered, layoutDesign(ordered, shape, measureTags(measureCtx, ordered), lineSpacing).placed)
     setTags(styled.map((t, i) => ({ ...t, color: ordered[i].color })))
   }
   const toLayout = () => {
     // New or changed tags since the last visit → arrange them for the shape.
-    if (tags.some((t) => !t.role)) setTags((list) => arrangeFor(list, shape))
+    if (tags.some((t) => !t.role)) setTags((list) => arrangeFor(list, shape, lineSpacing))
     go('layout')
   }
 
@@ -161,11 +162,12 @@ export default function App() {
     setSide('front')
     setHighlight(HIGHLIGHTS[0])
     setGlobalFont(DEFAULT_FONT_ID)
+    setLineSpacing(1)
     setError('')
     go('intro')
   }
 
-  const design = { tags, placed: layout.placed, shape, teeColour, highlight, side, fontsVersion }
+  const design = { tags, placed: layout.placed, shape, teeColour, highlight, side, fontsVersion, lineSpacing }
   const designDetails = (q = qty) => ({
     productId: 'hashtag_tee', colour: teeColour, size, qty: q, shape, side,
     tags: tags.map(tagLabel), page: window.location.pathname,
@@ -279,6 +281,7 @@ export default function App() {
             tags={tags} layout={layout} shape={shape} teeColour={teeColour} teeHex={hex} highlight={highlight}
             globalFont={globalFont} onShape={changeShape} onUpdateTag={updateTag} onReorder={reorder}
             onHighlight={setHighlight} onFontAll={fontAll} onRestyle={restyle}
+            lineSpacing={lineSpacing} onLineSpacing={setLineSpacing}
             onBack={() => go('tags')} onNext={() => go('preview')}
           />
         )}
