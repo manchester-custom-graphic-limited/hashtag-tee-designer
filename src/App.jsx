@@ -173,7 +173,7 @@ export default function App() {
 
   let blocker = null
   if (product === undefined) blocker = 'Loading prices…'
-  else if (!product) blocker = 'The Hashtag Tee isn’t on sale yet — please check back soon.'
+  else if (!product) blocker = 'The Hashtag Tee isn’t on sale yet - please check back soon.'
   else if (!cartAvailable()) blocker = 'Open this page from mcgt.co.uk to order.'
 
   const placeOrder = async () => {

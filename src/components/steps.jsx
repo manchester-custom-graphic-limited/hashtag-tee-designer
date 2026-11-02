@@ -19,7 +19,7 @@ export function StepIntro({ sample, onStart }) {
       </div>
       <div className="intro-copy">
         <h1>Your hashtags,<br />typeset on a tee.</h1>
-        <p>Type up to {MAX_TAGS} hashtags — your name, your team, your city, your dog. We set them
+        <p>Type up to {MAX_TAGS} hashtags - your name, your team, your city, your dog. We set them
           into a sphere or a square and print it on the front or back of a tee, in Manchester.</p>
         <button className="primary big" onClick={onStart}>Start building your hashtags</button>
       </div>
@@ -72,7 +72,7 @@ export function StepTags({ tags, layout, teeColour, teeHex, highlight, onAdd, on
             aria-label="Hashtag"
           />
         </label>
-        <p className="hint">{note || 'Letters, numbers and _ — any language. Spaces and punctuation drop out, like a real hashtag.'}</p>
+        <p className="hint">{note || 'Letters, numbers and _ - any language. Spaces and punctuation drop out, like a real hashtag.'}</p>
       </form>
 
       <div className={`tag-sphere${full ? ' full' : ''}${tags.length ? '' : ' empty'}`}>
@@ -171,7 +171,7 @@ export function StepLayout({
           </>
         ) : (
           <>
-            <p className="hint">Tap a hashtag to change its size, colour or font. Drag it to move it — the rest make room.</p>
+            <p className="hint">Tap a hashtag to change its size, colour or font. Drag it to move it - the rest make room.</p>
             <div className="fld">
               <span>Highlight colour</span>
               <div className="swatches">
