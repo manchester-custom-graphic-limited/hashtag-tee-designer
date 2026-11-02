@@ -6,6 +6,7 @@ import { highlightsFor, inkFor, ROLES } from '../lib/style.js'
 import { composeMockup } from '../lib/photoMockup.js'
 import { cleanTagText, tagLabel } from '../lib/text.js'
 import DesignCanvas from './DesignCanvas.jsx'
+import TagJar from './TagJar.jsx'
 
 // ---------------------------------------------------------------------------
 // 1 · Entrance
@@ -73,14 +74,7 @@ export function StepTags({ tags, onAdd, onRemove, onClear, onNext }) {
         <p className="hint">{note || 'Letters, numbers and _ — any language. Spaces and punctuation drop out, like a real hashtag.'}</p>
       </form>
 
-      <ul className="chips" aria-label="Your hashtags">
-        {tags.map((t) => (
-          <li key={t.id} className="chip">
-            <span>{tagLabel(t)}</span>
-            <button type="button" aria-label={`Remove ${tagLabel(t)}`} onClick={() => onRemove(t.id)}>×</button>
-          </li>
-        ))}
-      </ul>
+      <TagJar tags={tags} onRemove={onRemove} />
 
       {tags.length > 0 && (
         <button type="button" className="link clear-all" onClick={onClear}>Clear all</button>
@@ -88,7 +82,9 @@ export function StepTags({ tags, onAdd, onRemove, onClear, onNext }) {
 
       <footer className="step-bar">
         <span />
-        <button className="primary" disabled={!tags.length} onClick={onNext}>Next →</button>
+        <button className={`primary${full ? ' ready' : ''}`} disabled={!tags.length} onClick={onNext}>
+          {full ? 'Full! Arrange them →' : 'Next →'}
+        </button>
       </footer>
     </section>
   )
