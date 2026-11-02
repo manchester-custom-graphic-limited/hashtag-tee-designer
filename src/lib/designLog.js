@@ -30,6 +30,32 @@ async function captchaToken(siteKey) {
   })
 }
 
+// Per-visit context, captured once on page load: a random session id (links a visit's Preview
+// and Place Order rows), the device class, and where the visitor came from (referrer + UTM tags).
+const visit = (() => {
+  let session = ''
+  try {
+    session = sessionStorage.getItem('mcgt_design_session') || ''
+    if (!session) {
+      session = Math.random().toString(36).slice(2, 10) + Date.now().toString(36)
+      sessionStorage.setItem('mcgt_design_session', session)
+    }
+  } catch { /* private mode: no session id */ }
+  const ua = navigator.userAgent || ''
+  const device = /iPad|Tablet|Android(?!.*Mobile)/i.test(ua) ? 'tablet'
+    : /Mobi|iPhone|Android/i.test(ua) ? 'mobile' : 'desktop'
+  const q = new URLSearchParams(window.location.search)
+  let referrer = ''
+  try {
+    // Origin + path only: query strings can carry personal data.
+    if (document.referrer) { const r = new URL(document.referrer); referrer = r.origin + r.pathname }
+  } catch { /* unparsable referrer */ }
+  return {
+    session, device, referrer,
+    utmSource: q.get('utm_source') || '', utmMedium: q.get('utm_medium') || '', utmCampaign: q.get('utm_campaign') || '',
+  }
+})()
+
 // Resolves once the request is handed to the browser (keepalive lets it finish after the
 // page navigates away), or after 3 s if the captcha is slow. Never rejects.
 export function logDesignEvent(event, details) {
@@ -43,7 +69,7 @@ export function logDesignEvent(event, details) {
         method: 'POST',
         keepalive: true,
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ token, event, details }),
+        body: JSON.stringify({ token, event, details: { ...visit, ...details } }),
       }).catch(() => {})
     } catch { /* logging must never break the page */ }
   })()
