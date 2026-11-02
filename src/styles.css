@@ -209,4 +209,5 @@ input[type=range] { padding: 0; border: 0; background: none; accent-color: var(-
 .price .badge { flex-basis: 100%; width: max-content; font-size: .72rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #fff; background: var(--accent); border-radius: 999px; padding: 3px 10px; }
 .price-total { font-size: .95rem; color: var(--muted); }
 .price-total b { color: var(--ink); }
-.order .primary.big { width: min(100%, 420px); }
+.order .primary.big { width: min(100%, 420px); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.countdown { font-size: .78rem; font-weight: 700; letter-spacing: .02em; opacity: .9; font-variant-numeric: tabular-nums; }

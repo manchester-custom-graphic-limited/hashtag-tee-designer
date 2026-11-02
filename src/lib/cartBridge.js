@@ -45,23 +45,36 @@ export function readProduct(P, V, id) {
   const weight = Number(row[P.head.weight]) || 200
   const sizes = String(row[P.head.sizes] || '').split(',').map((s) => s.trim()).filter(Boolean)
   // Per-colour variant prices override the product price (black costs more to print).
-  // A variant price below the product price is shown as an offer: the product price
-  // is the regular one, struck through. Ending the offer = raise the variants back.
-  const prices = {}
+  // A sale (sale_price + sale_ends_at, on the Variants row or else the Products row) is
+  // checked by /shared/cart-store.js's McgtCart.sale, the same rule the checkout function
+  // charges by. Worked out on each call, so an offer that ends while the page is open ends.
+  const cellOf = (H, r, name) => (H.head[name] == null ? '' : r[H.head[name]] ?? '')
+  const pSale = [cellOf(P, row, 'sale_price'), cellOf(P, row, 'sale_ends_at')]
+  const variants = {}
   V.body
     .filter((r) => String(r[V.head.product_id]).trim() === id)
     .forEach((r) => {
       const p = Number(r[V.head.price])
-      if (p > 0) prices[String(r[V.head.colour]).trim()] = p
+      const vSale = [cellOf(V, r, 'sale_price'), cellOf(V, r, 'sale_ends_at')]
+      variants[String(r[V.head.colour]).trim()] = {
+        regular: p > 0 ? p : base,
+        sale: String(vSale[0]).trim() !== '' ? vSale : pSale,
+      }
     })
-  if (!sizes.length || !(base > 0 || Object.keys(prices).length)) return null
+  if (!sizes.length || !(base > 0 || Object.keys(variants).length)) return null
+  const saleFor = (colour) => {
+    const v = variants[colour] || { regular: base, sale: pSale }
+    const fn = typeof window !== 'undefined' && window.McgtCart?.sale
+    return fn ? fn(v.regular, v.sale[0], v.sale[1]) : { price: v.regular, was: null, ends: null }
+  }
   return {
     id,
     name: String(row[P.head.name] || 'Hashtag Tee').trim(),
     weight,
     sizes,
-    priceFor: (colour) => prices[colour] || base,
-    wasFor: (colour) => (prices[colour] && base > prices[colour] ? base : null),
+    priceFor: (colour) => saleFor(colour).price,
+    wasFor: (colour) => saleFor(colour).was,
+    endsFor: (colour) => saleFor(colour).ends,
   }
 }
 
