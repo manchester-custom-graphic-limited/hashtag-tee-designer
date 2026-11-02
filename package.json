@@ -1,0 +1,41 @@
+{
+  "name": "hashtag-tee-designer",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --base=/special/hashtags/",
+    "build:mcgt": "vite build --base=/special/hashtags/ --outDir=../mcgt/cloud-project-499409/firebase/public/special/hashtags --emptyOutDir",
+    "preview": "vite preview --base=/special/hashtags/",
+    "test": "node test/editor.test.mjs"
+  },
+  "dependencies": {
+    "@fontsource/anton": "^5.3.0",
+    "@fontsource/archivo-black": "^5.3.0",
+    "@fontsource/bangers": "^5.3.0",
+    "@fontsource/bebas-neue": "^5.3.0",
+    "@fontsource/cairo": "^5.3.0",
+    "@fontsource/chakra-petch": "^5.3.0",
+    "@fontsource/noto-sans": "^5.3.0",
+    "@fontsource/noto-sans-arabic": "^5.3.0",
+    "@fontsource/noto-sans-devanagari": "^5.3.0",
+    "@fontsource/noto-sans-hebrew": "^5.3.0",
+    "@fontsource/noto-sans-jp": "^5.3.1",
+    "@fontsource/noto-sans-kr": "^5.3.1",
+    "@fontsource/noto-sans-sc": "^5.3.1",
+    "@fontsource/noto-sans-tc": "^5.3.1",
+    "@fontsource/noto-sans-thai": "^5.3.0",
+    "@fontsource/pacifico": "^5.3.0",
+    "@fontsource/permanent-marker": "^5.3.0",
+    "@fontsource/press-start-2p": "^5.3.0",
+    "@fontsource/rubik": "^5.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "puppeteer": "^25.4.0",
+    "vite": "^5.4.11"
+  }
+}
