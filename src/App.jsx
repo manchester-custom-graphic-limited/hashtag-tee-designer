@@ -58,6 +58,9 @@ export default function App() {
   const [highlight, setHighlight] = useState(saved.highlight || HIGHLIGHTS[0])
   const [globalFont, setGlobalFont] = useState(saved.globalFont || DEFAULT_FONT_ID)
   const [lineSpacing, setLineSpacing] = useState(saved.lineSpacing ?? 1)
+  // Once the customer drags or shuffles, their order is kept: new tags go on the end and
+  // nothing re-arranges by itself. Until then, tags are arranged for the shape as typed.
+  const [manualOrder, setManualOrder] = useState(saved.manualOrder ?? false)
   const [fontsVersion, setFontsVersion] = useState(0)
   const [product, setProduct] = useState(undefined) // undefined = loading
   const [size, setSize] = useState('')
@@ -71,9 +74,9 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, tags, shape, teeColour, side, highlight, globalFont, lineSpacing }))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, tags, shape, teeColour, side, highlight, globalFont, lineSpacing, manualOrder }))
     } catch { /* ignore */ }
-  }, [step, tags, shape, teeColour, side, highlight, globalFont, lineSpacing])
+  }, [step, tags, shape, teeColour, side, highlight, globalFont, lineSpacing, manualOrder])
 
   // Load each font for the exact text it draws (CJK fonts arrive in chunks),
   // then re-measure and re-typeset.
@@ -115,12 +118,17 @@ export default function App() {
     if (!started.current) { started.current = true; track('design_start', { label: 'hashtag_tee' }) }
     addTagRaw(text)
   }
-  const addTagRaw = (text) => setTags((list) => (list.length >= MAX_TAGS ? list : [
+  // What the hashtag step shows is the order the Layout step starts from.
+  const autoArrange = (list) => (manualOrder ? list : arrangeFor(list, shape, lineSpacing))
+  const addTagRaw = (text) => setTags((list) => (list.length >= MAX_TAGS ? list : autoArrange([
     ...list, { id: newId(), text, weight: 1, fontId: fontFor(text, globalFont) },
-  ]))
-  const removeTag = (id) => setTags((list) => list.filter((t) => t.id !== id))
+  ])))
+  const removeTag = (id) => setTags((list) => autoArrange(list.filter((t) => t.id !== id)))
   const updateTag = useCallback((id, patch) => setTags((list) => list.map((t) => (t.id === id ? { ...t, ...patch } : t))), [])
-  const reorder = useCallback((ids) => setTags((list) => ids.map((id) => list.find((t) => t.id === id))), [])
+  const reorder = useCallback((ids) => {
+    setManualOrder(true)
+    setTags((list) => ids.map((id) => list.find((t) => t.id === id)))
+  }, [])
 
   const fontAll = (fontId) => {
     setGlobalFont(fontId)
@@ -128,19 +136,21 @@ export default function App() {
   }
   // Shape changes re-pick the order for the shape; Shuffle varies it; dragging
   // is how the customer overrides it.
-  const changeShape = (next) => { setShape(next); setTags((list) => arrangeFor(list, next, lineSpacing)) }
+  const changeShape = (next) => {
+    setShape(next)
+    setTags((list) => arrangeFor(list, next, lineSpacing))
+    setManualOrder(false)
+  }
   // Shuffle: a new order that still forms the shape, restyled from its sizes.
   // Custom colours, fonts and sizes the customer set are kept.
   const restyle = () => {
     const ordered = shuffle(tags, shape, measureTags(measureCtx, tags), Math.random, lineSpacing)
     const styled = autoRoles(ordered, layoutDesign(ordered, shape, measureTags(measureCtx, ordered), lineSpacing).placed)
     setTags(styled.map((t, i) => ({ ...t, color: ordered[i].color })))
+    setManualOrder(true)
   }
-  const toLayout = () => {
-    // New or changed tags since the last visit → arrange them for the shape.
-    if (tags.some((t) => !t.role)) setTags((list) => arrangeFor(list, shape, lineSpacing))
-    go('layout')
-  }
+  // No re-arranging here: the Layout step starts from exactly what the hashtag step showed.
+  const toLayout = () => go('layout')
 
   const go = (id) => {
     if (id !== step && id !== 'intro') track('design_step', { label: `${id}:${tags.length}` })
@@ -152,6 +162,7 @@ export default function App() {
   const clearTags = () => {
     if (tags.length > 1 && !window.confirm(`Remove all ${tags.length} hashtags?`)) return
     setTags([])
+    setManualOrder(false)
   }
 
   // Back to the entrance with an empty design (the tee colour choice is kept).
@@ -163,6 +174,7 @@ export default function App() {
     setHighlight(HIGHLIGHTS[0])
     setGlobalFont(DEFAULT_FONT_ID)
     setLineSpacing(1)
+    setManualOrder(false)
     setError('')
     go('intro')
   }
