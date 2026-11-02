@@ -72,7 +72,10 @@ export function StepTags({ tags, layout, teeColour, teeHex, highlight, onAdd, on
             aria-label="Hashtag"
           />
         </label>
-        <p className="hint">{note || 'Letters, numbers and _ - any language. Spaces and punctuation drop out, like a real hashtag.'}</p>
+        <p className="hint">
+          {note || 'Letters, numbers and underscore(_), any language. Spaces and punctuation drop out, like a real hashtag.'}
+          {tags.length > 0 && <><br />Tap a hashtag in the sphere to remove it.</>}
+        </p>
       </form>
 
       <div className={`tag-sphere${full ? ' full' : ''}${tags.length ? '' : ' empty'}`}>
@@ -82,8 +85,6 @@ export function StepTags({ tags, layout, teeColour, teeHex, highlight, onAdd, on
         />
         {!tags.length && <p className="tag-sphere-empty">Your hashtags take shape here</p>}
       </div>
-      {tags.length > 0 && <p className="hint">Tap a hashtag in the sphere to remove it.</p>}
-
       {tags.length > 0 && (
         <button type="button" className="link clear-all" onClick={onClear}>Clear all</button>
       )}
