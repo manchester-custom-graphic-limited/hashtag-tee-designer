@@ -75,6 +75,7 @@ export function StepTags({ tags, layout, teeColour, teeHex, highlight, onAdd, on
         <p className="hint">
           {note || 'Letters, numbers and underscore(_), any language. Spaces and punctuation drop out, like a real hashtag.'}
           {tags.length > 0 && <><br />Tap a hashtag in the sphere to remove it.</>}
+          {tags.length > 0 && <><br />On the next page you can change sizes, colours and fonts, and drag hashtags around.</>}
         </p>
       </form>
 
