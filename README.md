@@ -3,8 +3,8 @@
 **This branch is the free, standalone generator at https://hashtaggen.mcgt.co.uk**
 (GitHub Pages, published by `.github/workflows/pages.yml` on every push to `no-order`).
 It has no ordering: no cart, no catalogue sheet, no prices, no checkout, no design log,
-and no mcgt.co.uk tracking scripts. Preview ends in **Download image** (the tee mock-up as
-a 1080 px JPEG). `public/CNAME` sets the Pages domain.
+and no mcgt.co.uk tracking scripts. Preview ends in **Download image**: just the hashtag
+design (no tee photo) as a 2048 px square PNG on the tee colour. `public/CNAME` sets the Pages domain.
 
 `main` is the shop copy served at `mcgt.co.uk/special/hashtags/` (Firebase); don't
 merge this branch into it. DNS: `hashtaggen` CNAME → `manchester-custom-graphic-limited.github.io`,
@@ -20,7 +20,7 @@ A four-step flow:
    the top). Tap a tag to change its size, colour (main / grey / highlight /
    custom) or font; drag it onto another tag to move it, and the rest re-flow so the
    block re-forms the shape. "Auto-arrange" re-picks the order and colours.
-4. **Preview** — black or white tee, front or back, then **Download image**.
+4. **Preview** — black or white tee, front or back, then **Download image** (the hashtag design only).
 
 ```bash
 npm install

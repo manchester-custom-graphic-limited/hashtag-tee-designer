@@ -5,7 +5,6 @@ import { renderDesignCanvas } from './lib/exportPrint.js'
 import { ensureFont, fontFor, fontSupports, getFont } from './lib/fonts.js'
 import { arrange, layoutDesign, measureTags, shuffle } from './lib/layout.js'
 import { autoRoles, highlightsFor, teeHex } from './lib/style.js'
-import { mockupJpeg } from './lib/photoMockup.js'
 import { tagLabel } from './lib/text.js'
 
 const STEPS = [
@@ -168,17 +167,25 @@ export default function App() {
   }
 
   const design = { tags, placed: layout.placed, shape, teeColour, highlight, side, fontsVersion, lineSpacing }
-  // Saves the tee mock-up (photo + design) as a JPEG.
+  // Saves just the hashtag design (no tee photo) as a square PNG on the tee colour, so
+  // white-on-black tags stay visible in any image viewer.
   const downloadImage = async () => {
     if (busy) return
     setBusy(true)
     setError('')
     try {
       await Promise.all(tags.map((t) => ensureFont(t.fontId, tagLabel(t))))
-      const url = await mockupJpeg({ teeColour, side, design: renderDesignCanvas(design, 1200) }, 1080)
+      const px = 2048
+      const out = document.createElement('canvas')
+      out.width = px
+      out.height = px
+      const ctx = out.getContext('2d')
+      ctx.fillStyle = hex
+      ctx.fillRect(0, 0, px, px)
+      ctx.drawImage(renderDesignCanvas(design, px), 0, 0)
       const a = document.createElement('a')
-      a.href = url
-      a.download = `hashtag-tee-${shape}-${side}.jpg`
+      a.href = out.toDataURL('image/png')
+      a.download = `hashtags-${shape}-${teeColour.toLowerCase()}.png`
       a.click()
     } catch (err) {
       console.error(err)
