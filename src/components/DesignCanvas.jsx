@@ -46,7 +46,7 @@ export default function DesignCanvas({
     ctx.setLineDash([4, 6])
     if (lay.shape === 'sphere') {
       ctx.beginPath()
-      ctx.arc(css / 2, css / 2, css / 2 - 1, 0, Math.PI * 2)
+      ctx.arc(css / 2, css / 2, Math.max(0, css / 2 - 1), 0, Math.PI * 2)
       ctx.stroke()
     } else ctx.strokeRect(0.5, 0.5, css - 1, css - 1)
     ctx.restore()
