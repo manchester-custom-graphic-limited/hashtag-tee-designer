@@ -54,8 +54,4 @@ export const HIGHLIGHTS = ['#ffd600', '#ff7a00', '#e53935', '#ff4fa3', '#2bb24c'
 // Shop
 // ---------------------------------------------------------------------------
 
-// Row id in the catalogue sheet's Products tab; price, sizes and per-colour
-// variant prices come from the sheet.
-export const PRODUCT_ID = 'hashtag_tee'
-
 export const STORAGE_KEY = 'mcgt-hashtag-design-v2'

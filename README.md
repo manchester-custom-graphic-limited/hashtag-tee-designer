@@ -1,4 +1,15 @@
-# Hashtag Tee designer
+# Hashtag Tee designer - `no-order` branch
+
+**This branch is the free, standalone generator at https://hashtaggen.mcgt.co.uk**
+(GitHub Pages, published by `.github/workflows/pages.yml` on every push to `no-order`).
+It has no ordering: no cart, no catalogue sheet, no prices, no checkout, no design log,
+and no mcgt.co.uk tracking scripts. Preview ends in **Download image** (the tee mock-up as
+a 1080 px JPEG). `public/CNAME` sets the Pages domain.
+
+`main` is the shop copy served at `mcgt.co.uk/special/hashtags/` (Firebase); don't
+merge this branch into it. DNS: `hashtaggen` CNAME → `manchester-custom-graphic-limited.github.io`,
+DNS-only, in `mcgt/dns/dnsconfig.js`.
+
 
 A four-step flow:
 
@@ -9,21 +20,13 @@ A four-step flow:
    the top). Tap a tag to change its size, colour (main / grey / highlight /
    custom) or font; drag it onto another tag to move it, and the rest re-flow so the
    block re-forms the shape. "Auto-arrange" re-picks the order and colours.
-4. **Preview** — black or white tee, front or back, then **Place Order**, which
-   puts the print file in the existing mcgt.co.uk cart → Square checkout → Drive
-   order folder, the same path Battle Tees take.
-
-Intended URL: `mcgt.co.uk/special/hashtags/`. Shopify (mcgtltd.com) links or
-URL-redirects there; it does not host a copy.
+4. **Preview** — black or white tee, front or back, then **Download image**.
 
 ```bash
 npm install
-npm run dev        # http://localhost:5174 (Place Order is disabled outside mcgt.co.uk)
-npm run build:mcgt # into ../mcgt/cloud-project-499409/firebase/public/special/hashtags
+npm run dev     # http://localhost:5174
+npm run build   # into dist/ (what Pages serves)
 ```
-
-`build:mcgt` assumes the Firebase project sits beside the workbench, as the battle
-tool's script does. That folder is not on this machine (see the workbench CLAUDE.md).
 
 ## How the typesetting works (`src/lib/layout.js`)
 
@@ -38,20 +41,6 @@ on a shape change and on Auto-arrange; dragging overrides it.
 Colours are **roles**, not fixed hexes (`src/lib/style.js`): main, grey and
 highlight resolve per tee colour, so switching black ↔ white recolours sensibly. A
 highlight that doesn't read on the tee is swapped for one that does.
-
-## Price (2026-11-02)
-
-Regular **£15.90**, both colours; **launch offer £13.90 for two weeks** from go-live.
-The page shows an offer whenever a colour's Variants price is below the Products
-price (regular struck through, "Launch offer" badge). To end the offer, set both
-`hashtag_tee` Variants prices to 15.9 — no deploy needed.
-
-## Before it can take orders — catalogue sheet
-
-Add a `hashtag_tee` row to the **Products** tab (sizes, weight, price), with White
-and Black rows in **Variants** if the prices differ. Until it exists (and `active`
-isn't FALSE) the flow works but Place Order is blocked. The square-checkout function
-reprices from the sheet, so that row is what is actually charged.
 
 ## The print file
 
@@ -90,7 +79,7 @@ The list, with each font's scripts, is `src/lib/fonts.js`.
 ## Files
 
 ```
-src/App.jsx                    step state, fonts, ordering, Place Order
+src/App.jsx                    step state, fonts, Download image
 src/components/steps.jsx       the four steps
 src/components/DesignCanvas.jsx  animated design, tap/drag/reorder
 src/lib/layout.js              sphere/square typesetting + arrange()
@@ -100,7 +89,6 @@ src/lib/photoMockup.js         tee photos, derived back view, preview + thumbnai
 src/lib/exportPrint.js         print PNG, pHYs/iTXt chunks
 src/lib/fonts.js               font list, script detection, lazy loading
 src/lib/text.js                hashtag cleaning
-src/lib/cartBridge.js          catalogue sheet + window.McgtCart
 src/config.js                  limits, print geometry, colours, product id
 ```
 

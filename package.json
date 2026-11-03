@@ -5,10 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --base=/special/hashtags/",
-    "build:mcgt": "vite build --base=/special/hashtags/ --outDir=../mcgt/cloud-project-499409/firebase/public/special/hashtags --emptyOutDir",
-    "preview": "vite preview --base=/special/hashtags/",
-    "test": "node test/editor.test.mjs"
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@fontsource/anton": "^5.3.0",

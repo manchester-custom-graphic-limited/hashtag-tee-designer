@@ -20,7 +20,7 @@ export function StepIntro({ sample, onStart }) {
       <div className="intro-copy">
         <h1>Your hashtags,<br />typeset on a tee.</h1>
         <p>Type up to {MAX_TAGS} hashtags - your name, your team, your city, your dog. We set them
-          into a sphere or a square and print it on the front or back of a tee, in Manchester.</p>
+          into a sphere or a square on the front or back of a tee, and you save the picture.</p>
         <button className="primary big" onClick={onStart}>Start building your hashtags</button>
       </div>
     </section>
@@ -212,37 +212,14 @@ export function StepLayout({
 }
 
 // ---------------------------------------------------------------------------
-// 4 · Preview + order
+// 4 · Preview + download
 // ---------------------------------------------------------------------------
 
-// "Offer ends in 4d 06:12:09", ticking each second; nothing once it has passed.
-function Countdown({ until }) {
-  const [now, setNow] = useState(() => Date.now())
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000)
-    return () => clearInterval(t)
-  }, [])
-  const left = until ? until.getTime() - now : 0
-  if (!(left > 0)) return null
-  const s = Math.floor(left / 1000)
-  const pad = (n) => String(n).padStart(2, '0')
-  const d = Math.floor(s / 86400)
-  const hms = `${pad(Math.floor((s % 86400) / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`
-  return (
-    <span className="countdown" role="timer" aria-live="off">
-      <span aria-hidden="true">⏱</span> Offer ends in <b>{d > 0 && `${d}d `}{hms}</b>
-    </span>
-  )
-}
-
-// Personalised tees are bought in ones and twos; bigger runs go through a bulk quote.
-const QTY_CHOICES = [1, 2, 3, 4, 5]
-
 export function StepPreview({
-  design, teeColour, side, onTee, onSide, product, size, onSize, qty, onQty, blocker, busy, error, onOrder, onBack,
+  design, teeColour, side, onTee, onSide, busy, error, onDownload, onBack,
 }) {
-  // Re-composed on every change at the photo's resolution; the print file is
-  // rendered separately at Place Order.
+  // Re-composed on every change at the photo's resolution; the download is
+  // rendered separately, larger.
   const canvasRef = useRef(null)
   const [ready, setReady] = useState(false)
   useEffect(() => {
@@ -258,8 +235,6 @@ export function StepPreview({
     return () => { live = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teeColour, side, design.placed, design.tags, design.highlight, design.fontsVersion])
-  const price = product?.priceFor(teeColour)
-  const was = product?.wasFor(teeColour)
 
   return (
     <section className="step preview-step">
@@ -289,43 +264,10 @@ export function StepPreview({
               ))}
             </div>
           </div>
-          <div className="opt">
-            <span className="opt-label" id="size-label">Size</span>
-            <div className="choices" role="radiogroup" aria-labelledby="size-label">
-              {(product?.sizes || []).map((s) => (
-                <button key={s} role="radio" aria-checked={size === s} className={size === s ? 'on' : ''}
-                  onClick={() => onSize(s)}>{s}</button>
-              ))}
-            </div>
-          </div>
-          <div className="opt">
-            <span className="opt-label" id="qty-label">Quantity</span>
-            <div className="choices" role="radiogroup" aria-labelledby="qty-label">
-              {QTY_CHOICES.map((n) => (
-                <button key={n} role="radio" aria-checked={qty === n} className={qty === n ? 'on' : ''}
-                  onClick={() => onQty(n)}>{n}</button>
-              ))}
-            </div>
-          </div>
-          {price ? (
-            <div className="price">
-              <div className="price-each">
-                {was && <span className="badge">Limited-time offer</span>}
-                <span className="now">£{price.toFixed(2)}</span>
-                {was && <s aria-label={`was £${was.toFixed(2)}`}>£{was.toFixed(2)}</s>}
-                <span className="each">each</span>
-              </div>
-              {qty > 1 && (
-                <div className="price-total">{qty} tees · <b>£{(price * qty).toFixed(2)}</b></div>
-              )}
-            </div>
-          ) : null}
         </div>
-        {was && <Countdown until={product?.endsFor(teeColour)} />}
-        <button className="primary big" onClick={onOrder} disabled={Boolean(blocker) || busy}>
-          {busy ? 'Placing order…' : 'Place Order'}
+        <button className="primary big" onClick={onDownload} disabled={!ready || busy}>
+          {busy ? 'Saving…' : 'Download image'}
         </button>
-        {blocker && <p className="hint">{blocker}</p>}
         {error && <p className="err">{error}</p>}
       </div>
 

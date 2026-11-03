@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { StepIntro, StepLayout, StepPreview, StepTags } from './components/steps.jsx'
 import { DEFAULT_FONT_ID, HIGHLIGHTS, MAX_TAGS, STORAGE_KEY } from './config.js'
-import { addHashtagLineToCart, cartAvailable, fetchProduct } from './lib/cartBridge.js'
-import { renderDesignCanvas, renderPrintPng } from './lib/exportPrint.js'
+import { renderDesignCanvas } from './lib/exportPrint.js'
 import { ensureFont, fontFor, fontSupports, getFont } from './lib/fonts.js'
 import { arrange, layoutDesign, measureTags, shuffle } from './lib/layout.js'
 import { autoRoles, highlightsFor, teeHex } from './lib/style.js'
 import { mockupJpeg } from './lib/photoMockup.js'
-import { logDesignEvent } from './lib/designLog.js'
 import { tagLabel } from './lib/text.js'
 
 const STEPS = [
@@ -62,15 +60,10 @@ export default function App() {
   // nothing re-arranges by itself. Until then, tags are arranged for the shape as typed.
   const [manualOrder, setManualOrder] = useState(saved.manualOrder ?? false)
   const [fontsVersion, setFontsVersion] = useState(0)
-  const [product, setProduct] = useState(undefined) // undefined = loading
-  const [size, setSize] = useState('')
-  const [qty, setQty] = useState(1)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   const hex = teeHex(teeColour)
-
-  useEffect(() => { fetchProduct().then(setProduct) }, [])
 
   useEffect(() => {
     try {
@@ -108,10 +101,6 @@ export default function App() {
     const ok = highlightsFor(teeColour)
     if (!ok.includes(highlight)) setHighlight(ok[0])
   }, [teeColour, highlight])
-
-  useEffect(() => {
-    if (product && !product.sizes.includes(size)) setSize(product.sizes.includes('L') ? 'L' : product.sizes[0])
-  }, [product, size])
 
   const started = useRef(false)
   const addTag = (text) => {
@@ -154,7 +143,6 @@ export default function App() {
 
   const go = (id) => {
     if (id !== step && id !== 'intro') track('design_step', { label: `${id}:${tags.length}` })
-    if (id === 'preview' && id !== step) logDesignEvent('preview', designDetails())
     setStep(id)
     window.scrollTo(0, 0)
   }
@@ -180,47 +168,23 @@ export default function App() {
   }
 
   const design = { tags, placed: layout.placed, shape, teeColour, highlight, side, fontsVersion, lineSpacing }
-  const designDetails = (q = qty) => ({
-    productId: 'hashtag_tee', colour: teeColour, size, qty: q, shape, side,
-    tags: tags.map(tagLabel), page: window.location.pathname,
-  })
-
-  let blocker = null
-  if (product === undefined) blocker = 'Loading prices…'
-  else if (!product) blocker = 'The Hashtag Tee isn’t on sale yet - please check back soon.'
-  else if (!cartAvailable()) blocker = 'Open this page from mcgt.co.uk to order.'
-
-  const placeOrder = async () => {
-    if (blocker || busy) return
+  // Saves the tee mock-up (photo + design) as a JPEG.
+  const downloadImage = async () => {
+    if (busy) return
     setBusy(true)
     setError('')
-    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
     try {
       await Promise.all(tags.map((t) => ensureFont(t.fontId, tagLabel(t))))
-      const { blob } = await renderPrintPng(design)
-      const thumb = await mockupJpeg({ teeColour, side, design: renderDesignCanvas(design, 600) })
-      const label = tags.map(tagLabel).join(' ')
-      const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '')
-      const uploadName = `hashtag-tee-${shape}-${side}-${stamp}.png`
-      const lineQty = Math.max(1, Math.min(99, Math.round(qty) || 1))
-      await addHashtagLineToCart({
-        product,
-        colour: teeColour,
-        blob,
-        thumb,
-        designLabel: `${label.length > 60 ? `${label.slice(0, 57)}…` : label} · ${shape} · ${side}`,
-        uploadName,
-        size,
-        qty: lineQty,
-      })
-      track('place_order_click', { label: `${tags.length} tags` })
-      await logDesignEvent('place_order', designDetails(lineQty))
-      window.location.assign('/cart/')
+      const url = await mockupJpeg({ teeColour, side, design: renderDesignCanvas(design, 1200) }, 1080)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `hashtag-tee-${shape}-${side}.jpg`
+      a.click()
     } catch (err) {
       console.error(err)
-      setError('Could not place the order. Try again, or reload the page if it keeps happening.')
-      setBusy(false)
+      setError('Could not save the image. Try again.')
     }
+    setBusy(false)
   }
 
   const stepIndex = STEPS.findIndex((s) => s.id === step)
@@ -246,7 +210,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="top">
-        <a href="/" className="brand" aria-label="manchester.cgt home">
+        <a href="https://mcgt.co.uk/" className="brand" aria-label="manchester.cgt home">
           <img src={`${import.meta.env.BASE_URL}logo.png`} alt="" width="36" height="36" />
           <span>manchester.cgt</span>
         </a>
@@ -272,7 +236,6 @@ export default function App() {
             </ol>
           </nav>
         )}
-        <a href="/cart/" className="cart" aria-label="Cart">🛒</a>
       </header>
 
       <main>
@@ -300,8 +263,7 @@ export default function App() {
         {step === 'preview' && (
           <StepPreview
             design={design} teeColour={teeColour} side={side} onTee={setTeeColour} onSide={setSide}
-            product={product} size={size} onSize={setSize} qty={qty} onQty={setQty}
-            blocker={blocker} busy={busy} error={error} onOrder={placeOrder} onBack={() => go('layout')}
+            busy={busy} error={error} onDownload={downloadImage} onBack={() => go('layout')}
           />
         )}
       </main>
